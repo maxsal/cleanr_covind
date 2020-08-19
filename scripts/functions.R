@@ -373,3 +373,20 @@ get_r_est <- function(dat) {
         dplyr::ungroup()
     
 }
+
+# get_tpr_est -----------
+get_tpr_est <- function(dat) {
+    
+    dat %>%
+        group_by(place) %>%
+        slice((n()-6):n()) %>%
+        summarize(
+            tpr_min = min(tpr, na.rm = T),
+            tpr_max = max(tpr, na.rm = T),
+            tpr     = mean(tpr, na.rm = T),
+            .groups = "drop_last"
+        ) %>%
+        drop_na(tpr) %>%
+        ungroup()
+    
+}
