@@ -61,6 +61,9 @@ get_testing_data <- function(d) {
                                 col_types = cols()) %>%
         janitor::clean_names() %>%
         dplyr::select(date, place = country, total_tests = tests) %>%
+        dplyr::group_by(date) %>%
+        dplyr::filter(total_tests == max(total_tests)) %>%
+        dplyr::ungroup() %>%
         dplyr::arrange(date) %>%
         dplyr::mutate(
             daily_tests = total_tests - dplyr::lag(total_tests),
@@ -116,7 +119,20 @@ do_it_all <- function(d) {
     
     count_dat <- get_count_data(d = d)
     test_dat  <- get_testing_data(d = d)
-    merge_data(count = count_dat, test = test_dat)
+    merge_dat <- merge_data(count = count_dat, test = test_dat) %>%
+        get_dbl()
+    r0_dat <- get_r0(merge_dat) %>%
+        dplyr::select(
+            place,
+            date,
+            r_est = r,
+            r_lower = lower,
+            r_upper = upper
+        )
+    
+    merge_dat %>%
+        left_join(r0_dat, by = c("place", "date"))
+    
     
 }
 
